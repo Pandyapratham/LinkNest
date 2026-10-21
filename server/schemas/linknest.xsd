@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="themeType"><xs:restriction base="xs:string"><xs:enumeration value="soft"/><xs:enumeration value="light"/><xs:enumeration value="dark"/><xs:enumeration value="midnight"/><xs:enumeration value="sunset"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="socialPlatformType"><xs:restriction base="xs:string"><xs:enumeration value="instagram"/><xs:enumeration value="tiktok"/><xs:enumeration value="youtube"/><xs:enumeration value="x"/><xs:enumeration value="linkedin"/><xs:enumeration value="github"/><xs:enumeration value="facebook"/><xs:enumeration value="website"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="linkPlatformType"><xs:restriction base="xs:string"><xs:enumeration value="website"/><xs:enumeration value="instagram"/><xs:enumeration value="tiktok"/><xs:enumeration value="youtube"/><xs:enumeration value="x"/><xs:enumeration value="linkedin"/><xs:enumeration value="github"/><xs:enumeration value="spotify"/><xs:enumeration value="facebook"/><xs:enumeration value="other"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="slugType"><xs:restriction base="xs:string"><xs:minLength value="3"/><xs:maxLength value="40"/><xs:pattern value="[a-z0-9]([a-z0-9-]*[a-z0-9])?"/></xs:restriction></xs:simpleType>
+  <xs:element name="linknest"><xs:complexType><xs:sequence>
+    <xs:element name="profile"><xs:complexType><xs:sequence>
+      <xs:element name="slug" type="slugType"/><xs:element name="displayName"><xs:simpleType><xs:restriction base="xs:string"><xs:minLength value="1"/><xs:maxLength value="80"/></xs:restriction></xs:simpleType></xs:element>
+      <xs:element name="bio" type="xs:string"/><xs:element name="avatarUrl" type="xs:string"/><xs:element name="theme" type="themeType"/><xs:element name="enabled" type="xs:boolean"/>
+      <xs:element name="socialLinks"><xs:complexType><xs:sequence><xs:element name="socialLink" minOccurs="0" maxOccurs="8"><xs:complexType><xs:sequence><xs:element name="platform" type="socialPlatformType"/><xs:element name="url" type="xs:anyURI"/><xs:element name="label" type="xs:string"/></xs:sequence></xs:complexType></xs:element></xs:sequence></xs:complexType></xs:element>
+    </xs:sequence></xs:complexType></xs:element>
+    <xs:element name="links"><xs:complexType><xs:sequence><xs:element name="link" minOccurs="0" maxOccurs="100"><xs:complexType><xs:sequence>
+      <xs:element name="title"><xs:simpleType><xs:restriction base="xs:string"><xs:minLength value="1"/><xs:maxLength value="80"/></xs:restriction></xs:simpleType></xs:element>
+      <xs:element name="destinationUrl" type="xs:anyURI"/><xs:element name="description" type="xs:string"/><xs:element name="icon" type="xs:string"/><xs:element name="platform" type="linkPlatformType"/><xs:element name="displayOrder" type="xs:nonNegativeInteger"/><xs:element name="enabled" type="xs:boolean"/>
+    </xs:sequence></xs:complexType></xs:element></xs:sequence></xs:complexType></xs:element>
+  </xs:sequence><xs:attribute name="version" type="xs:string" use="required" fixed="1"/></xs:complexType></xs:element>
+</xs:schema>

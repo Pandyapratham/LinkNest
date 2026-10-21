@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<linknest version="1">
+  <profile>
+    <slug>study-creator</slug>
+    <displayName>Study Creator</displayName>
+    <bio>Design student sharing projects and notes.</bio>
+    <avatarUrl></avatarUrl>
+    <theme>soft</theme>
+    <enabled>true</enabled>
+    <socialLinks>
+      <socialLink><platform>website</platform><url>https://example.com</url><label>Website</label></socialLink>
+    </socialLinks>
+  </profile>
+  <links>
+    <link><title>Portfolio</title><destinationUrl>https://example.com/portfolio</destinationUrl><description>Selected projects</description><icon>✦</icon><platform>website</platform><displayOrder>0</displayOrder><enabled>true</enabled></link>
+    <link><title>Course notes</title><destinationUrl>https://example.org/notes</destinationUrl><description>Study resources</description><icon>↗</icon><platform>other</platform><displayOrder>1</displayOrder><enabled>true</enabled></link>
+  </links>
+</linknest>

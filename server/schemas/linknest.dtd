@@ -1,0 +1,21 @@
+<!ELEMENT linknest (profile, links)>
+<!ATTLIST linknest version CDATA #REQUIRED>
+<!ELEMENT profile (slug, displayName, bio, avatarUrl, theme, enabled, socialLinks)>
+<!ELEMENT slug (#PCDATA)>
+<!ELEMENT displayName (#PCDATA)>
+<!ELEMENT bio (#PCDATA)>
+<!ELEMENT avatarUrl (#PCDATA)>
+<!ELEMENT theme (#PCDATA)>
+<!ELEMENT enabled (#PCDATA)>
+<!ELEMENT socialLinks (socialLink*)>
+<!ELEMENT socialLink (platform, url, label)>
+<!ELEMENT platform (#PCDATA)>
+<!ELEMENT url (#PCDATA)>
+<!ELEMENT label (#PCDATA)>
+<!ELEMENT links (link*)>
+<!ELEMENT link (title, destinationUrl, description, icon, platform, displayOrder, enabled)>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT destinationUrl (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+<!ELEMENT icon (#PCDATA)>
+<!ELEMENT displayOrder (#PCDATA)>
