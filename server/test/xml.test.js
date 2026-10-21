@@ -13,7 +13,7 @@ const profile = {
 };
 const links = [{ title: "Portfolio <2026>", destinationUrl: "https://example.com/?a=1&b=2", description: "Work & notes", icon: "✦", platform: "website", displayOrder: 0, enabled: true }];
 
-test("LinkNest XML export escapes data and validates against the local XSD", () => {
+test("Pinpoint XML export escapes data and validates against the local XSD", () => {
   const xml = profileToXml(profile, links);
   assert.match(xml, /Demo &amp; Maker/);
   assert.match(xml, /Portfolio &lt;2026&gt;/);

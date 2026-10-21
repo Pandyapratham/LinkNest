@@ -1,4 +1,4 @@
-# LinkNest API
+# Pinpoint API
 
 All request and response bodies use JSON unless the endpoint exports XML or redirects. Protected routes require the `linknest_token` HttpOnly cookie. Browser requests send credentials; clients must not store the JWT in local storage.
 
@@ -20,7 +20,7 @@ Public link clicks are counted only by the redirect endpoint; profile preview pa
 | Method | Path | Body | Success |
 |---|---|---|---|
 | POST | `/api/auth/register` | `{ "email", "username", "password" }` | `201 { "success": true, "user": { "id", "email", "username", "createdAt" } }`; sets HttpOnly cookie. |
-| POST | `/api/auth/login` | `{ "email", "password" }` | `200` user object; sets cookie. |
+| POST | `/api/auth/login` | `{ "identifier", "password" }` using an email or username; legacy `{ "email", "password" }` remains supported. | `200` user object; sets cookie. |
 | POST | `/api/auth/logout` | none | `200 { "success": true, "message": "Logged out successfully" }`; clears cookie. |
 | GET | `/api/auth/me` | none | `200` current public user or `401`. |
 

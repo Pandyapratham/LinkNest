@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Pinpoint link-in-bio and analytics API",
   "main": "index.js",
   "scripts": {
     "test": "node --test",

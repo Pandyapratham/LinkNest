@@ -1,6 +1,6 @@
-# LinkNest
+# Pinpoint
 
-LinkNest is a MERN link-in-bio builder for a BWP Semester 5 project. It combines a responsive React dashboard with an Express/Mongoose API, cookie-based authentication, public profile pages, link redirects, analytics, and a practical Web Technology Lab.
+Pinpoint is a MERN link-in-bio builder for a BWP Semester 5 project. It combines a responsive React dashboard with an Express/Mongoose API, cookie-based authentication, public profile pages, link redirects, analytics, and a practical Web Technology Lab.
 
 ## Architecture and Features
 

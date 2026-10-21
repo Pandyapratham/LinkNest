@@ -21,7 +21,7 @@ export async function apiRequest(path, { method = 'GET', body, signal, responseT
     })
   } catch (error) {
     if (error.name === 'AbortError') throw error
-    throw new ApiError('Could not reach LinkNest. Check that the backend is running and try again.')
+    throw new ApiError('Could not reach Pinpoint. Check that the backend is running and try again.')
   }
 
   const contentType = response.headers.get('content-type') || ''

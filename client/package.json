@@ -2,6 +2,7 @@
   "name": "client",
   "private": true,
   "version": "0.0.0",
+  "description": "Pinpoint link-in-bio and analytics frontend",
   "type": "module",
   "scripts": {
     "dev": "vite",

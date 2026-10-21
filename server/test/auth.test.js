@@ -55,10 +55,11 @@ after(async () => {
   }
 });
 
-async function request(path, { method = "GET", body, cookie } = {}) {
+async function request(path, { method = "GET", body, cookie, origin } = {}) {
   const headers = {};
   if (body !== undefined) headers["content-type"] = "application/json";
   if (cookie) headers.cookie = cookie;
+  if (origin) headers.origin = origin;
   return fetch(`${baseUrl}${path}`, {
     method,
     headers,
@@ -118,7 +119,7 @@ test("authentication endpoints validate input and manage an HttpOnly session", a
   await t.test("rejects duplicate email and duplicate username", async () => {
     const duplicateEmail = await request("/api/auth/register", {
       method: "POST",
-      body: { email: testEmail, username: `${testUsername}x`, password: testPassword },
+      body: { email: ` ${testEmail.toUpperCase()} `, username: `${testUsername}x`, password: testPassword },
     });
     const duplicateUsername = await request("/api/auth/register", {
       method: "POST",
@@ -142,6 +143,45 @@ test("authentication endpoints validate input and manage an HttpOnly session", a
       body: { email: testEmail, password: "incorrect-password" },
     });
     assert.equal(wrongPassword.status, 401);
+  });
+
+  await t.test("logs in by normalized username and rejects unknown identifiers", async () => {
+    const response = await request("/api/auth/login", {
+      method: "POST",
+      body: { identifier: ` ${testUsername.toUpperCase()} `, password: testPassword },
+    });
+    assert.equal(response.status, 200);
+    const setCookie = response.headers.get("set-cookie") || "";
+    assert.match(setCookie, /HttpOnly/i);
+    const cookie = setCookie.split(";")[0];
+
+    const session = await request("/api/auth/me", { cookie });
+    const sessionResult = await json(session);
+    assert.equal(session.status, 200);
+    assert.equal(sessionResult.user.username, testUsername);
+
+    const unknownUsername = await request("/api/auth/login", {
+      method: "POST",
+      body: { identifier: `missing${testId.slice(0, 12)}`, password: testPassword },
+    });
+    const unknownEmail = await request("/api/auth/login", {
+      method: "POST",
+      body: { identifier: `missing-${testId}@example.invalid`, password: testPassword },
+    });
+    assert.equal(unknownUsername.status, 401);
+    assert.equal(unknownEmail.status, 401);
+  });
+
+  await t.test("keeps the Vite 5174 origin credential-enabled", async () => {
+    const response = await request("/api/auth/login", {
+      method: "POST",
+      body: { identifier: testUsername, password: testPassword },
+      origin: "http://localhost:5174",
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("access-control-allow-origin"), "http://localhost:5174");
+    assert.equal(response.headers.get("access-control-allow-credentials"), "true");
+    assert.match(response.headers.get("set-cookie") || "", /HttpOnly/i);
   });
 
   await t.test("marks the authentication cookie Secure in production", async () => {

@@ -14,7 +14,7 @@ vi.mock('./api', () => ({
 
 afterEach(() => { cleanup(); vi.clearAllMocks(); window.history.replaceState({}, '', '/') })
 
-describe('LinkNest application flows', () => {
+describe('Pinpoint application flows', () => {
   it('restores a cookie session and loads the persisted dashboard profile and links', async () => {
     api.me.mockResolvedValue({ user: { id: 'user-id', email: 'demo@example.com', username: 'demo' } })
     api.getProfile.mockResolvedValue({ profile: { id: 'profile-id', slug: 'demo-profile', displayName: 'Demo Creator', enabled: true, theme: 'soft' } })
@@ -50,11 +50,24 @@ describe('LinkNest application flows', () => {
     api.login.mockResolvedValue({ user: { id: 'user-id', email: 'demo@example.com', username: 'demo' } })
     api.getProfile.mockRejectedValue(Object.assign(new Error('Profile not found'), { status: 404 }))
     render(<App />)
-    await user.type(await screen.findByLabelText('Email'), 'demo@example.com')
+    await user.type(await screen.findByLabelText('Email or username'), 'demo@example.com')
     await user.type(screen.getByLabelText('Password'), 'long-enough-password')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
     expect(await screen.findByRole('heading', { name: /welcome, demo/i })).toBeTruthy()
-    expect(api.login).toHaveBeenCalledWith({ email: 'demo@example.com', password: 'long-enough-password' })
+    expect(api.login).toHaveBeenCalledWith({ identifier: 'demo@example.com', password: 'long-enough-password' })
+  })
+
+  it('submits a username through the same login identifier field', async () => {
+    const user = userEvent.setup()
+    api.me.mockRejectedValue(Object.assign(new Error('Authentication required'), { status: 401 }))
+    api.login.mockResolvedValue({ user: { id: 'user-id', email: 'demo@example.com', username: 'demo' } })
+    api.getProfile.mockRejectedValue(Object.assign(new Error('Profile not found'), { status: 404 }))
+    render(<App />)
+    await user.type(await screen.findByLabelText('Email or username'), 'demo')
+    await user.type(screen.getByLabelText('Password'), 'long-enough-password')
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    expect(await screen.findByRole('heading', { name: /welcome, demo/i })).toBeTruthy()
+    expect(api.login).toHaveBeenCalledWith({ identifier: 'demo', password: 'long-enough-password' })
   })
 
   it('creates links through the API using a normalized HTTPS destination', async () => {

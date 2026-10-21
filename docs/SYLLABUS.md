@@ -1,6 +1,6 @@
 # BWP Web Technology syllabus mapping
 
-| Syllabus topic | LinkNest feature that demonstrates it |
+| Syllabus topic | Pinpoint feature that demonstrates it |
 |---|---|
 | HTML5 forms, inputs, tables, links, images | Accessible registration/profile/link forms, dashboard link rows, public link anchors and avatar images with alternative text. |
 | CSS3 and responsive design | Premium dashboard and public profiles use CSS Grid/Flexbox, focus styles, small-screen layouts, theme palettes, and reduced-motion support. |

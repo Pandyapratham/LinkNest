@@ -56,7 +56,7 @@ const publicClickRateLimit = rateLimit({
 });
 
 app.get("/", (req, res) => {
-  res.send("LinkNest backend is running!");
+  res.send("Pinpoint backend is running!");
 });
 
 app.get("/api/health", (req, res) => {
@@ -68,7 +68,7 @@ app.get("/api/health", (req, res) => {
 
   res.json({
     success: true,
-    message: "LinkNest API is working",
+    message: "Pinpoint API is working",
     // Keep the original fields and values for existing health-check clients.
     database: databaseConnected ? "connected" : "not connected",
     application: "ok",

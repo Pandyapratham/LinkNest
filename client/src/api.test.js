@@ -23,7 +23,7 @@ describe('central API client', () => {
 
   it('converts network errors to a safe message and preserves aborts', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('private network detail')))
-    await expect(apiRequest('/api/auth/me')).rejects.toThrow('Could not reach LinkNest')
+    await expect(apiRequest('/api/auth/me')).rejects.toThrow('Could not reach Pinpoint')
     const abort = new DOMException('aborted', 'AbortError')
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(abort))
     await expect(apiRequest('/api/auth/me')).rejects.toBe(abort)

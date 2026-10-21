@@ -1,4 +1,4 @@
-# LinkNest manual test and presentation checklist
+# Pinpoint manual test and presentation checklist
 
 ## Run
 

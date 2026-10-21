@@ -19,7 +19,7 @@ router.get("/me/export.xml", async (req, res) => {
     if (!profile) return res.status(404).json({ success: false, message: "Profile not found" });
     const links = await Link.find({ profile: profile._id }).sort({ displayOrder: 1, createdAt: 1 }).lean();
     res.type("application/xml; charset=utf-8");
-    res.set("Content-Disposition", 'attachment; filename="linknest-export.xml"');
+    res.set("Content-Disposition", 'attachment; filename="pinpoint-export.xml"');
     return res.send(profileToXml(profile, links));
   } catch {
     return res.status(500).json({ success: false, message: "Unable to export profile XML" });

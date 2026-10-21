@@ -109,18 +109,26 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   if (unavailableWithoutJwtSecret(res)) return;
-  if (!isPlainObject(req.body) || !containsOnlyKeys(req.body, ["email", "password"])) {
-    return res.status(400).json({ success: false, message: "Provide only email and password" });
+  if (!isPlainObject(req.body) || !containsOnlyKeys(req.body, ["email", "identifier", "password"])) {
+    return res.status(400).json({ success: false, message: "Provide a username or email and password" });
   }
 
-  const email = validateEmail(req.body.email);
+  const hasEmail = Object.hasOwn(req.body, "email");
+  const hasIdentifier = Object.hasOwn(req.body, "identifier");
+  if (hasEmail === hasIdentifier) {
+    return res.status(400).json({ success: false, message: "Provide exactly one username or email" });
+  }
+
+  const rawIdentifier = hasIdentifier ? req.body.identifier : req.body.email;
+  const identifier = typeof rawIdentifier === "string" ? rawIdentifier.trim().toLowerCase() : "";
+  const isEmail = identifier.includes("@");
   const password = req.body.password;
-  if (!email || !validatePassword(password)) {
-    return res.status(400).json({ success: false, message: "Enter a valid email address and password" });
+  if ((isEmail ? !validateEmail(identifier) : !USERNAME_PATTERN.test(identifier)) || !validatePassword(password)) {
+    return res.status(400).json({ success: false, message: "Enter a valid username or email address and password" });
   }
 
   try {
-    const user = await User.findOne({ email }).select("+passwordHash");
+    const user = await User.findOne(isEmail ? { email: identifier } : { username: identifier }).select("+passwordHash");
     const passwordMatches = user
       ? await bcrypt.compare(password, user.passwordHash)
       : false;

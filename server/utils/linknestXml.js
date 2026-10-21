@@ -41,7 +41,7 @@ function parseAndValidateLinknestXml(source) {
     return { error: "The XML is malformed or could not be parsed" };
   }
   if (!document.validate(schema)) {
-    return { error: "The XML does not match the LinkNest XSD schema" };
+    return { error: "The XML does not match the Pinpoint XSD schema" };
   }
 
   const profile = {
