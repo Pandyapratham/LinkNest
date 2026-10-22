@@ -102,3 +102,16 @@ Deploy behind HTTPS using a trusted TLS certificate. Configure the exact fronten
 - [API documentation](docs/API.md)
 - [Syllabus mapping](docs/SYLLABUS.md)
 - [Manual testing checklist](docs/MANUAL-TESTING.md)
+
+
+### AI analytics assistant
+
+The authenticated dashboard includes a floating Pinpoint AI chat assistant. It answers questions using only the signed-in user's real link-click analytics for the selected 7-, 30-, or 90-day period.
+
+Configure the OpenAI-compatible provider in `server/.env` using `server/.env.example` as a template:
+
+- `OPENAI_BASE_URL`: provider API base URL (for OpenAI, `https://api.openai.com/v1`).
+- `OPENAI_API_KEY`: provider-issued secret. The example key is a non-working placeholder, not a usable credential.
+- `OPENAI_MODEL`: model name supported by that provider.
+
+The API key stays on the server. The chat endpoint requires the same authenticated session as the analytics API, scopes data to the signed-in user's profile, limits message length/history, and rate-limits requests. The assistant is explicit that Pinpoint records link clicks, not profile views.
