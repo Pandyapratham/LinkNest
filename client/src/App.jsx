@@ -359,9 +359,20 @@ function App() {
     setToast(message); window.setTimeout(() => setToast(''), 2600)
   }, [])
 
+  // Keep range in a ref so loadWorkspace always uses the latest range value
+  const rangeRef = useRef('7d')
+
   const loadAnalytics = useCallback(async (selectedRange = '7d') => {
     setAnalyticsLoading(true); setAnalyticsError('')
-    try { setAnalytics(await api.getAnalytics(selectedRange)) } catch (error) { setAnalyticsError(error.message); setAnalytics(null) } finally { setAnalyticsLoading(false) }
+    try {
+      const data = await api.getAnalytics(selectedRange)
+      setAnalytics(data)
+    } catch (error) {
+      setAnalyticsError(error.message)
+      setAnalytics(null)
+    } finally {
+      setAnalyticsLoading(false)
+    }
   }, [])
 
   const loadWorkspace = useCallback(async (keepExisting = false) => {
@@ -371,11 +382,14 @@ function App() {
       let currentProfile
       try { currentProfile = (await api.getProfile()).profile } catch (e) { if (e.status !== 404) throw e }
       if (currentProfile) {
+        // Fetch links and analytics in parallel for speed
+        const [linksResult] = await Promise.all([
+          api.getLinks(),
+          loadAnalytics(rangeRef.current),
+        ])
         setProfile(currentProfile)
-        const result = await api.getLinks()
-        setLinks(result.links || [])
+        setLinks(linksResult.links || [])
         try { setPublicData((await api.publicProfile(currentProfile.slug)).profile) } catch { setPublicData(null) }
-        await loadAnalytics('7d')
       } else {
         if (!keepExisting) { setProfile(null); setLinks([]); setPublicData(null) }
       }
@@ -568,11 +582,13 @@ function App() {
   async function logout() {
     try {
       await api.logout()
+      rangeRef.current = '7d'
       setUser(null); setProfile(null); setLinks([]); setPublicData(null); setAnalytics(null); setRange('7d'); setAuthState('signed-out')
     } catch (e) { notify(`Could not sign out: ${e.message}`) }
   }
 
   async function acceptAuthentication(nextUser) {
+    rangeRef.current = '7d'
     setAuthState('loading'); setUser(nextUser); setRange('7d'); await loadWorkspace(false); setAuthState('ready')
   }
 
@@ -618,6 +634,10 @@ function App() {
   const deviceCounts = Object.fromEntries((analytics?.devices || []).map(item => [item._id, item.clicks]))
   const deviceTotal = analytics?.totalClicks || 0
   const deviceAngle = (deviceCounts.desktop || 0) / Math.max(deviceTotal, 1) * 360
+  // Build a reliable map from link ID string → click count
+  const linkClicksMap = Object.fromEntries(
+    (analytics?.topLinks || []).map(item => [String(item._id), item.clicks])
+  )
   const mobileAngle = deviceAngle + (deviceCounts.mobile || 0) / Math.max(deviceTotal, 1) * 360
   const tabletAngle = mobileAngle + (deviceCounts.tablet || 0) / Math.max(deviceTotal, 1) * 360
   const navItems = [{ label: 'Overview', icon: 'grid' }, { label: 'My links', icon: 'link' }, { label: 'Analytics', icon: 'chart' }, { label: 'Appearance', icon: 'palette' }, { label: 'Syllabus Lab', icon: 'settings' }]
@@ -689,7 +709,7 @@ function App() {
           {/* Middle grid: analytics + profile preview */}
           <section className="middle-grid">
             <article className="panel analytics-panel" id="analytics">
-              <div className="panel-heading"><div><div className="section-kicker">YOUR PERFORMANCE</div><h2>Clicks over time</h2></div><select className="range-select" value={range} onChange={e => { setRange(e.target.value); loadAnalytics(e.target.value) }} aria-label="Analytics date range"><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last 90 days</option></select></div>
+              <div className="panel-heading"><div><div className="section-kicker">YOUR PERFORMANCE</div><h2>Clicks over time</h2></div><div className="analytics-controls"><select className="range-select" value={range} onChange={e => { const r = e.target.value; setRange(r); rangeRef.current = r; loadAnalytics(r) }} aria-label="Analytics date range"><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last 90 days</option></select><button className="icon-button subtle-button refresh-btn" title="Refresh analytics" aria-label="Refresh analytics" onClick={() => loadAnalytics(range)} disabled={analyticsLoading}>↺</button></div></div>
               <div className="chart-summary"><strong>{analyticsLoading ? 'Loading…' : (analytics?.totalClicks || 0).toLocaleString()}</strong><span className="summary-period">actual tracked clicks · {range}</span></div>
               {analyticsError && <p className="integration-error" role="alert">{analyticsError} <button onClick={() => loadAnalytics(range)}>Retry</button></p>}
               <div className="chart-wrap"><div className="chart-y-labels">{chartTicks.map((value, index) => <span key={index}>{value.toLocaleString()}</span>)}</div><div className="chart-main"><div className="chart-gridlines"><i /><i /><i /><i /><i /></div><div className="bar-chart">{(analytics?.daily || []).map((item, index) => <div className="bar-column" key={item.date} title={`${item.date}: ${item.clicks} clicks`}><div className={`bar ${index === (analytics?.daily?.length || 0) - 1 ? 'bar-highlight' : ''}`} style={{ height: `${Math.max(3, item.clicks / Math.max(chartMax, 1) * 100)}%` }} /></div>)}</div><div className="chart-x-labels chart-date-labels">{(analytics?.daily || []).filter((_, index, all) => index === 0 || index === all.length - 1 || index % Math.ceil(all.length / 7) === 0).map(item => <span key={item.date}>{item.date.slice(5)}</span>)}</div></div></div>
@@ -739,7 +759,7 @@ function App() {
                         <span className={`link-icon ${tones[index % tones.length]}`}>{link.icon || getPlatformMeta(link.platform).icon}</span>
                         <div className="link-copy"><strong>{link.title}</strong><span>{link.destinationUrl}</span>{link.description && <span>{link.description}</span>}</div>
                       </div>
-                      <span className="link-clicks">{analytics?.topLinks?.find(item => String(item._id) === link.id)?.clicks || 0}</span>
+                      <span className="link-clicks">{linkClicksMap[link.id] || 0}</span>
                       <span className={`link-status ${link.enabled ? '' : 'status-disabled'}`}><i /> {link.enabled ? 'Active' : 'Disabled'}</span>
                       <div className="row-actions">
                         <button className="icon-button reorder-action" aria-label={`Move ${link.title} up`} disabled={index === 0} onClick={() => moveLink(index, -1)}>↑</button>
