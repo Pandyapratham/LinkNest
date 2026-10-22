@@ -1,5 +1,5 @@
 /* Floating AI analytics copilot */
-.ai-chat-root { position: fixed; z-index: 80; right: 26px; bottom: 24px; font-family: 'DM Sans', sans-serif; color: #28253b; }
+.ai-chat-root { position: fixed; z-index: 25; right: 26px; bottom: 24px; font-family: 'DM Sans', sans-serif; color: #28253b; }
 .ai-chat-launcher { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; min-width: 62px; height: 58px; padding: 0 19px; border: 1px solid #ffffff40; border-radius: 19px; color: #fff; background: linear-gradient(135deg,#8d70f4 0%,#6d4ce0 55%,#5d43c7 100%); box-shadow: 0 12px 32px #7256df54, inset 0 1px #ffffff40; cursor: pointer; transition: transform .2s, box-shadow .2s, border-radius .2s; }
 .ai-chat-launcher:hover { transform: translateY(-3px); box-shadow: 0 16px 35px #7256df65, inset 0 1px #ffffff40; }
 .ai-chat-launcher-open { width: 54px; min-width: 54px; height: 54px; margin-left: auto; padding: 0; border-radius: 18px; }
