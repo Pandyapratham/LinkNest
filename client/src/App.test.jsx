@@ -87,4 +87,23 @@ describe('Pinpoint application flows', () => {
     expect(api.createLink.mock.calls[0][0].destinationUrl).toMatch(/^https:\/\//)
     expect(await screen.findByText('Portfolio')).toBeTruthy()
   })
+
+  it('keeps zero-click days visually empty and sizes the chart to the selected data', async () => {
+    api.me.mockResolvedValue({ user: { id: 'user-id', email: 'demo@example.com', username: 'demo' } })
+    api.getProfile.mockResolvedValue({ profile: { id: 'profile-id', slug: 'demo-profile', displayName: 'Demo Creator', enabled: true } })
+    api.getLinks.mockResolvedValue({ links: [] })
+    api.publicProfile.mockResolvedValue({ profile: { slug: 'demo-profile', links: [] } })
+    api.getAnalytics.mockResolvedValue({
+      totalClicks: 0,
+      daily: Array.from({ length: 7 }, (_, index) => ({ date: `2026-10-${String(index + 1).padStart(2, '0')}`, clicks: 0 })),
+      topLinks: [],
+      devices: [],
+    })
+
+    render(<App />)
+    const chart = await screen.findByRole('img', { name: 'Daily clicks over the last 7 days' })
+    expect(chart.style.gridTemplateColumns).toBe('repeat(7, minmax(0, 1fr))')
+    expect(chart.querySelector('.bar').style.height).toBe('0%')
+  })
+
 })
