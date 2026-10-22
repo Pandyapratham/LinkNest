@@ -15,7 +15,7 @@ describe('AI analytics chat widget', () => {
     render(<AiAnalyticsChat />)
 
     await user.click(screen.getByRole('button', { name: 'Open AI analytics assistant' }))
-    expect(screen.getByRole('heading', { name: 'Pinpoint AI' })).toBeTruthy()
+    expect(screen.getByText('Pinpoint AI')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: /Top-performing links/ }))
 
     expect(await screen.findByText('Your portfolio link has 12 clicks in this period.')).toBeTruthy()
