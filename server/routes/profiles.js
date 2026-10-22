@@ -14,6 +14,13 @@ const BUTTON_STYLES = ["rounded", "pill", "square"];
 const HEX_COLOR_PATTERN = /^#[\da-f]{6}$/i;
 const SOCIAL_PLATFORMS = ["instagram", "tiktok", "youtube", "x", "linkedin", "github", "facebook", "website"];
 
+// Default display labels per platform
+const PLATFORM_LABELS = {
+  instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube",
+  x: "X / Twitter", linkedin: "LinkedIn", github: "GitHub",
+  facebook: "Facebook", website: "Website",
+};
+
 function profileJson(profile) {
   return {
     id: String(profile._id),
@@ -138,12 +145,70 @@ function handleProfileError(res, error) {
   return res.status(500).json({ success: false, message: "Unable to complete profile request" });
 }
 
+/**
+ * Sync socialLinks from the profile into the Link collection so they are
+ * tracked for analytics just like any other link.
+ *
+ * Strategy:
+ * - For each social link, upsert a Link doc matched by (profile, platform).
+ *   Only one Link per social platform is kept — update URL/title if changed.
+ * - Social links removed from the profile are NOT deleted from Link collection
+ *   (preserves analytics history). They stay in the db but won't appear in
+ *   the social footer since that is now driven by the Link collection.
+ */
+async function syncSocialLinksToLinkDocs(profileId, socialLinks) {
+  if (!socialLinks || socialLinks.length === 0) return;
+
+  // Find the highest displayOrder among existing links for this profile
+  const lastLink = await Link.findOne({ profile: profileId })
+    .sort({ displayOrder: -1 })
+    .select("displayOrder")
+    .lean();
+  let nextOrder = lastLink ? lastLink.displayOrder + 1 : 0;
+
+  for (const social of socialLinks) {
+    const title = social.label?.trim() || PLATFORM_LABELS[social.platform] || social.platform;
+    const url = social.url;
+    const platform = social.platform;
+
+    // Check if a Link with this platform already exists for this profile
+    const existing = await Link.findOne({ profile: profileId, platform });
+
+    if (existing) {
+      // Update URL and title if they changed, preserve everything else
+      if (existing.destinationUrl !== url || existing.title !== title) {
+        existing.destinationUrl = url;
+        existing.title = title;
+        await existing.save();
+      }
+    } else {
+      // Create a new tracked Link for this social platform
+      await Link.create({
+        profile: profileId,
+        title,
+        destinationUrl: url,
+        platform,
+        icon: "",
+        description: "",
+        displayOrder: nextOrder++,
+        enabled: true,
+      });
+    }
+  }
+}
+
 router.post("/", async (req, res) => {
   const normalized = normalizeProfileBody(req.body, true);
   if (normalized.error) return res.status(400).json({ success: false, message: normalized.error });
 
   try {
     const profile = await Profile.create({ ...normalized.value, owner: req.user._id });
+
+    // Auto-create Link docs for any social links provided at profile creation
+    if (normalized.value.socialLinks?.length) {
+      await syncSocialLinksToLinkDocs(profile._id, normalized.value.socialLinks);
+    }
+
     return res.status(201).json({ success: true, profile: profileJson(profile) });
   } catch (error) {
     return handleProfileError(res, error);
@@ -169,6 +234,12 @@ router.patch("/me", async (req, res) => {
     if (!profile) return res.status(404).json({ success: false, message: "Profile not found" });
     Object.assign(profile, normalized.value);
     await profile.save();
+
+    // Sync any updated social links into the Link collection
+    if (normalized.value.socialLinks !== undefined) {
+      await syncSocialLinksToLinkDocs(profile._id, normalized.value.socialLinks);
+    }
+
     return res.json({ success: true, profile: profileJson(profile) });
   } catch (error) {
     return handleProfileError(res, error);

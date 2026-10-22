@@ -248,8 +248,37 @@ function LinkForm({ draft, setDraft, onSubmit, onCancel, saving, isEdit }) {
     setDraft(prev => ({ ...prev, destinationUrl: e.target.value }))
   }
 
+  // Social platforms for quick-add row
+  const socialQuickAdd = PLATFORMS.filter(p => ['instagram', 'tiktok', 'youtube', 'x', 'linkedin', 'github', 'facebook'].includes(p.value))
+
   return (
     <form onSubmit={onSubmit}>
+      {/* Quick-add social row — one-click for common platforms */}
+      {!isEdit && (
+        <div className="quick-add-social">
+          <span className="quick-add-label">Quick-add:</span>
+          {socialQuickAdd.map(p => (
+            <button
+              key={p.value}
+              type="button"
+              className="quick-add-chip"
+              onClick={() => {
+                setDraft(prev => ({
+                  ...prev,
+                  platform: p.value,
+                  title: p.label,
+                  icon: p.icon,
+                  destinationUrl: p.base,
+                }))
+              }}
+              title={`Add ${p.label}`}
+            >
+              {p.icon} {p.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Platform picker — big visual buttons */}
       <label>Platform</label>
       <div className="platform-picker">
@@ -887,9 +916,7 @@ function App() {
                   <option value="classic">Classic</option><option value="grid">Grid</option><option value="portfolio">Portfolio</option>
                 </select>
 
-                {/* ── Social links — visual row editor ── */}
-                <label>Social links <span className="field-hint">shown as icons at the bottom of your page</span></label>
-                <SocialLinksEditor value={socialDraft} onChange={setSocialDraft} />
+                {/* Note: Social links are now added via "Add link" — pick any platform (Instagram, GitHub, etc.) and it will automatically appear in the social footer on your public page and be tracked for analytics. */}
 
                 <label className="checkbox-label">
                   <input type="checkbox" checked={Boolean(profileDraft.enabled)} onChange={e => setProfileDraft({ ...profileDraft, enabled: e.target.checked })} /> Publish this profile
