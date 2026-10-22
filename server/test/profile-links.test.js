@@ -123,7 +123,13 @@ test("profile and link APIs validate data and enforce ownership", async (t) => {
         displayName: "  Taylor Creator  ",
         bio: "Designer and maker",
         avatarUrl: "https://images.example.invalid/taylor.png",
-        theme: "sunset",
+        bannerUrl: "https://images.example.invalid/banner.png",
+        theme: "gradient",
+        backgroundColor: "#F1EAFF",
+        accentColor: "#7958E8",
+        fontFamily: "serif",
+        buttonStyle: "pill",
+        layout: "portfolio",
         socialLinks: [{ platform: "instagram", url: "https://instagram.com/taylor", label: "Instagram" }],
       },
     });
@@ -131,6 +137,12 @@ test("profile and link APIs validate data and enforce ownership", async (t) => {
     assert.equal(createResponse.status, 201);
     assert.equal(result.profile.displayName, "Taylor Creator");
     assert.equal(result.profile.slug, `creator-${runId.slice(0, 10)}`);
+    assert.equal(result.profile.backgroundColor, "#f1eaff");
+    assert.equal(result.profile.accentColor, "#7958e8");
+    assert.equal(result.profile.fontFamily, "serif");
+    assert.equal(result.profile.buttonStyle, "pill");
+    assert.equal(result.profile.layout, "portfolio");
+    assert.equal(result.profile.bannerUrl, "https://images.example.invalid/banner.png");
     assert.equal("owner" in result.profile, false);
     firstProfile = result.profile;
 
@@ -184,6 +196,25 @@ test("profile and link APIs validate data and enforce ownership", async (t) => {
     assert.equal(otherUserProfile.status, 200);
     assert.equal(otherUserResult.profile.id, secondProfile.id);
     assert.notEqual(otherUserResult.profile.id, firstProfile.id);
+
+    const invalidColor = await request("/api/profile/me", {
+      method: "PATCH",
+      cookie: firstCookie,
+      body: { backgroundColor: "url(javascript:alert(1))" },
+    });
+    const invalidFont = await request("/api/profile/me", {
+      method: "PATCH",
+      cookie: firstCookie,
+      body: { fontFamily: "@import url(https://example.invalid/font.css)" },
+    });
+    const invalidBanner = await request("/api/profile/me", {
+      method: "PATCH",
+      cookie: firstCookie,
+      body: { bannerUrl: "data:image/svg+xml,<svg/>" },
+    });
+    assert.equal(invalidColor.status, 400);
+    assert.equal(invalidFont.status, 400);
+    assert.equal(invalidBanner.status, 400);
   });
 
   await t.test("rejects unsafe link URLs and creates links with ordered defaults", async () => {
@@ -283,7 +314,8 @@ test("profile and link APIs validate data and enforce ownership", async (t) => {
     const response = await request(`/api/public/profiles/${firstProfile.slug}`);
     const result = await readJson(response);
     assert.equal(response.status, 200);
-    assert.deepEqual(Object.keys(result.profile).sort(), ["avatarUrl", "bio", "displayName", "links", "slug", "socialLinks", "theme"].sort());
+    assert.deepEqual(Object.keys(result.profile).sort(), ["accentColor", "avatarUrl", "backgroundColor", "bannerUrl", "bio", "buttonStyle", "displayName", "fontFamily", "layout", "links", "slug", "socialLinks", "theme"].sort());
+    assert.equal(result.profile.layout, "portfolio");
     assert.equal("owner" in result.profile, false);
     assert.equal("email" in result.profile, false);
     assert.equal("userId" in result.profile, false);

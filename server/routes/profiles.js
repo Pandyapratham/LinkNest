@@ -6,8 +6,12 @@ const Profile = require("../models/Profile");
 const { hasOnlyKeys, isPlainObject, normalizeHttpUrl, normalizeSlug } = require("../utils/validation");
 
 const router = express.Router();
-const PROFILE_KEYS = ["slug", "displayName", "bio", "avatarUrl", "theme", "socialLinks", "enabled"];
-const THEMES = ["soft", "light", "dark", "midnight", "sunset"];
+const PROFILE_KEYS = ["slug", "displayName", "bio", "avatarUrl", "theme", "backgroundColor", "accentColor", "fontFamily", "buttonStyle", "layout", "bannerUrl", "socialLinks", "enabled"];
+const THEMES = ["soft", "minimal", "gradient", "dark", "light", "midnight", "sunset"];
+const LAYOUTS = ["classic", "grid", "portfolio"];
+const FONT_FAMILIES = ["system", "serif", "mono"];
+const BUTTON_STYLES = ["rounded", "pill", "square"];
+const HEX_COLOR_PATTERN = /^#[\da-f]{6}$/i;
 const SOCIAL_PLATFORMS = ["instagram", "tiktok", "youtube", "x", "linkedin", "github", "facebook", "website"];
 
 function profileJson(profile) {
@@ -18,6 +22,12 @@ function profileJson(profile) {
     bio: profile.bio,
     avatarUrl: profile.avatarUrl,
     theme: profile.theme,
+    backgroundColor: profile.backgroundColor || "#fbf9ff",
+    accentColor: profile.accentColor || "#8062e6",
+    fontFamily: profile.fontFamily || "system",
+    buttonStyle: profile.buttonStyle || "rounded",
+    layout: profile.layout || "classic",
+    bannerUrl: profile.bannerUrl || "",
     socialLinks: profile.socialLinks.map((item) => ({ platform: item.platform, url: item.url, label: item.label })),
     enabled: profile.enabled,
     createdAt: profile.createdAt,
@@ -74,6 +84,29 @@ function normalizeProfileBody(body, isCreate) {
   if (body.theme !== undefined) {
     if (typeof body.theme !== "string" || !THEMES.includes(body.theme)) return { error: "Unsupported profile theme" };
     value.theme = body.theme;
+  }
+  for (const key of ["backgroundColor", "accentColor"]) {
+    if (body[key] !== undefined) {
+      if (typeof body[key] !== "string" || !HEX_COLOR_PATTERN.test(body[key])) return { error: `${key === "backgroundColor" ? "Background" : "Accent"} color must be a six-digit hex color` };
+      value[key] = body[key].toLowerCase();
+    }
+  }
+  if (body.fontFamily !== undefined) {
+    if (typeof body.fontFamily !== "string" || !FONT_FAMILIES.includes(body.fontFamily)) return { error: "Unsupported profile font" };
+    value.fontFamily = body.fontFamily;
+  }
+  if (body.buttonStyle !== undefined) {
+    if (typeof body.buttonStyle !== "string" || !BUTTON_STYLES.includes(body.buttonStyle)) return { error: "Unsupported link button style" };
+    value.buttonStyle = body.buttonStyle;
+  }
+  if (body.layout !== undefined) {
+    if (typeof body.layout !== "string" || !LAYOUTS.includes(body.layout)) return { error: "Unsupported profile layout" };
+    value.layout = body.layout;
+  }
+  if (body.bannerUrl !== undefined) {
+    const bannerUrl = normalizeHttpUrl(body.bannerUrl, { allowEmpty: true });
+    if (bannerUrl === null) return { error: "Banner URL must be empty or use HTTP or HTTPS" };
+    value.bannerUrl = bannerUrl;
   }
   if (body.socialLinks !== undefined) {
     const result = normalizeSocialLinks(body.socialLinks);

@@ -26,6 +26,12 @@ router.get("/:slug", async (req, res) => {
         bio: profile.bio,
         avatarUrl: profile.avatarUrl,
         theme: profile.theme,
+        backgroundColor: profile.backgroundColor || "#fbf9ff",
+        accentColor: profile.accentColor || "#8062e6",
+        fontFamily: profile.fontFamily || "system",
+        buttonStyle: profile.buttonStyle || "rounded",
+        layout: profile.layout || "classic",
+        bannerUrl: profile.bannerUrl || "",
         socialLinks: (profile.socialLinks || []).map(({ platform, url, label }) => ({ platform, url, label })),
         links: links.map(({ _id, title, destinationUrl, description, icon, platform, displayOrder }) => ({
           id: String(_id),

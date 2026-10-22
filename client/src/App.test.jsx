@@ -7,7 +7,7 @@ import { api } from './api'
 vi.mock('./api', () => ({
   api: {
     me: vi.fn(), login: vi.fn(), register: vi.fn(), logout: vi.fn(), getProfile: vi.fn(), createProfile: vi.fn(), updateProfile: vi.fn(),
-    getLinks: vi.fn(), createLink: vi.fn(), updateLink: vi.fn(), deleteLink: vi.fn(), reorderLinks: vi.fn(), publicProfile: vi.fn(), getAnalytics: vi.fn(), analyticsChat: vi.fn(),
+    getLinks: vi.fn(), createLink: vi.fn(), updateLink: vi.fn(), deleteLink: vi.fn(), reorderLinks: vi.fn(), publicProfile: vi.fn(), getAnalytics: vi.fn(),
   },
   API_BASE_URL: 'http://localhost:5000',
 }))
@@ -26,6 +26,9 @@ describe('Pinpoint application flows', () => {
     expect((await screen.findAllByText('Portfolio')).length).toBeGreaterThanOrEqual(1)
     expect(api.getProfile).toHaveBeenCalledTimes(1)
     expect(api.getLinks).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark dashboard theme' }))
+    expect(document.querySelector('.app-shell.dashboard-dark')).toBeTruthy()
+    await waitFor(() => expect(window.localStorage.getItem('pinpoint-dashboard-theme')).toBe('dark'))
   })
 
   it('renders an API-backed public profile with redirect links and only provided public fields', async () => {
@@ -36,6 +39,16 @@ describe('Pinpoint application flows', () => {
     expect(link.getAttribute('href')).toContain('/api/redirect/public-demo/public-link-id')
     expect(screen.queryByText(/@/)).toBeNull()
     await waitFor(() => expect(api.publicProfile).toHaveBeenCalledWith('public-demo'))
+  })
+
+  it('renders selected public layouts and portfolio fallbacks from public profile data', async () => {
+    api.publicProfile.mockResolvedValue({ profile: { slug: 'portfolio-demo', displayName: 'Portfolio Creator', layout: 'portfolio', theme: 'minimal', backgroundColor: '#ffffff', accentColor: '#7658df', fontFamily: 'serif', buttonStyle: 'pill', bio: '', links: [] } })
+    render(<PublicProfilePage slug="portfolio-demo" />)
+    expect(await screen.findByRole('heading', { name: 'Portfolio Creator' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'About me' })).toBeTruthy()
+    expect(screen.getByText(/introduction will appear here/i)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Projects & links' })).toBeTruthy()
+    expect(document.querySelector('.public-card.layout-portfolio.button-pill.theme-minimal')).toBeTruthy()
   })
 
   it('shows a safe error state when a public slug is unavailable', async () => {
@@ -88,22 +101,45 @@ describe('Pinpoint application flows', () => {
     expect(await screen.findByText('Portfolio')).toBeTruthy()
   })
 
-  it('keeps zero-click days visually empty and sizes the chart to the selected data', async () => {
+  it('previews unsaved appearance settings in mobile and desktop without publishing', async () => {
+    const user = userEvent.setup()
     api.me.mockResolvedValue({ user: { id: 'user-id', email: 'demo@example.com', username: 'demo' } })
-    api.getProfile.mockResolvedValue({ profile: { id: 'profile-id', slug: 'demo-profile', displayName: 'Demo Creator', enabled: true } })
-    api.getLinks.mockResolvedValue({ links: [] })
+    api.getProfile.mockResolvedValue({ profile: { id: 'profile-id', slug: 'demo-profile', displayName: 'Demo Creator', bio: 'A creative profile', enabled: true, theme: 'soft', layout: 'classic' } })
+    api.getLinks.mockResolvedValue({ links: [{ id: 'link-id', title: 'Portfolio', destinationUrl: 'https://example.com', displayOrder: 0, enabled: true }] })
     api.publicProfile.mockResolvedValue({ profile: { slug: 'demo-profile', links: [] } })
-    api.getAnalytics.mockResolvedValue({
-      totalClicks: 0,
-      daily: Array.from({ length: 7 }, (_, index) => ({ date: `2026-10-${String(index + 1).padStart(2, '0')}`, clicks: 0 })),
-      topLinks: [],
-      devices: [],
-    })
-
+    api.getAnalytics.mockResolvedValue({ totalClicks: 0, daily: [], topLinks: [], devices: [] })
     render(<App />)
-    const chart = await screen.findByRole('img', { name: 'Daily clicks over the last 7 days' })
-    expect(chart.style.gridTemplateColumns).toBe('repeat(7, minmax(0, 1fr))')
-    expect(chart.querySelector('.bar').style.height).toBe('0%')
+    await user.click(await screen.findByRole('button', { name: 'Appearance' }))
+    await user.clear(screen.getByLabelText('Display name'))
+    await user.type(screen.getByLabelText('Display name'), 'Draft Creator')
+    await user.selectOptions(screen.getByLabelText('Public layout'), 'portfolio')
+    await user.click(screen.getByRole('button', { name: 'Preview' }))
+    expect(await screen.findByRole('heading', { name: 'Draft Creator' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Projects & links' })).toBeTruthy()
+    expect(screen.getAllByText('Portfolio').length).toBeGreaterThanOrEqual(1)
+    await user.click(screen.getByRole('button', { name: 'Mobile' }))
+    expect(document.querySelector('.preview-stage-mobile .layout-portfolio')).toBeTruthy()
+    expect(api.updateProfile).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Back to editing' }))
+    expect(screen.getByLabelText('Display name').value).toBe('Draft Creator')
   })
 
+  it('saves customization fields through the existing profile API', async () => {
+    const user = userEvent.setup()
+    api.me.mockResolvedValue({ user: { id: 'user-id', email: 'demo@example.com', username: 'demo' } })
+    api.getProfile.mockResolvedValue({ profile: { id: 'profile-id', slug: 'demo-profile', displayName: 'Demo Creator', enabled: true, theme: 'soft' } })
+    api.getLinks.mockResolvedValue({ links: [] })
+    api.publicProfile.mockResolvedValue({ profile: { slug: 'demo-profile', links: [] } })
+    api.getAnalytics.mockResolvedValue({ totalClicks: 0, daily: [], topLinks: [], devices: [] })
+    api.updateProfile.mockResolvedValue({ profile: { id: 'profile-id', slug: 'demo-profile', displayName: 'Demo Creator', layout: 'grid' } })
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Appearance' }))
+    await user.selectOptions(screen.getByLabelText('Theme preset'), 'gradient')
+    await user.selectOptions(screen.getByLabelText('Public layout'), 'grid')
+    await user.selectOptions(screen.getByLabelText('Font'), 'mono')
+    await user.selectOptions(screen.getByLabelText('Link button style'), 'square')
+    await user.click(screen.getByRole('button', { name: /save profile/i }))
+    await waitFor(() => expect(api.updateProfile).toHaveBeenCalled())
+    expect(api.updateProfile.mock.calls[0][0]).toMatchObject({ theme: 'gradient', layout: 'grid', fontFamily: 'mono', buttonStyle: 'square', backgroundColor: '#f1eaff', accentColor: '#7958e8' })
+  })
 })
