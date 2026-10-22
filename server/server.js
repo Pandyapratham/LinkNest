@@ -80,6 +80,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRateLimit, require("./routes/auth"));
 app.use("/api/profile", requireAuth, require("./routes/profiles"), require("./routes/links"), require("./routes/xml"));
 app.use("/api/analytics", requireAuth, require("./routes/analytics"));
+app.use("/api/assistant", requireAuth, require("./routes/aiAnalytics").router);
 app.use("/api/lab", require("./routes/lab"));
 app.use("/api/public/profiles", require("./routes/publicProfiles"));
 app.use("/api/redirect", publicClickRateLimit, require("./routes/redirect"));

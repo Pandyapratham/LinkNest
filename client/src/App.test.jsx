@@ -7,7 +7,7 @@ import { api } from './api'
 vi.mock('./api', () => ({
   api: {
     me: vi.fn(), login: vi.fn(), register: vi.fn(), logout: vi.fn(), getProfile: vi.fn(), createProfile: vi.fn(), updateProfile: vi.fn(),
-    getLinks: vi.fn(), createLink: vi.fn(), updateLink: vi.fn(), deleteLink: vi.fn(), reorderLinks: vi.fn(), publicProfile: vi.fn(), getAnalytics: vi.fn(),
+    getLinks: vi.fn(), createLink: vi.fn(), updateLink: vi.fn(), deleteLink: vi.fn(), reorderLinks: vi.fn(), publicProfile: vi.fn(), getAnalytics: vi.fn(), analyticsChat: vi.fn(),
   },
   API_BASE_URL: 'http://localhost:5000',
 }))

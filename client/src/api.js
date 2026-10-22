@@ -52,6 +52,7 @@ export const api = {
   reorderLinks: (linkIds) => apiRequest('/api/profile/me/links/reorder', { method: 'PATCH', body: { linkIds } }),
   publicProfile: (slug) => apiRequest(`/api/public/profiles/${encodeURIComponent(slug)}`),
   getAnalytics: (range = '7d') => apiRequest(`/api/analytics?range=${encodeURIComponent(range)}`),
+  analyticsChat: (body) => apiRequest('/api/assistant/chat', { method: 'POST', body }),
   exportXml: () => apiRequest('/api/profile/me/export.xml', { responseType: 'blob' }),
   validateXml: (xml) => apiRequest('/api/profile/me/import/validate', { method: 'POST', body: { xml } }),
   importXml: (xml) => apiRequest('/api/profile/me/import', { method: 'POST', body: { xml, confirm: true } }),
