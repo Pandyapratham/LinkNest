@@ -220,3 +220,93 @@ h2 { font-size: 15px; line-height: 1.3; font-weight: 750; letter-spacing: -.35px
 .dashboard-dark .range-select, .dashboard-dark .search-box, .dashboard-dark .icon-button { color: #d0cbdf; }
 .dashboard-dark .empty-state strong { color: #e9e6f2; }
 @media (max-width: 650px) { .public-card.layout-grid .public-links { grid-template-columns: 1fr; }.preview-stage { padding: 10px; }.preview-stage-mobile .public-card { padding: 25px 16px 18px; }.customization-grid { gap: 8px; } }
+
+
+/* ── Platform picker (Add link modal) ─────────────────────────────────────── */
+.platform-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.platform-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px 8px;
+  border: 1.5px solid #e9e6ef;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s, box-shadow .15s;
+  min-width: 0;
+}
+.platform-chip:hover {
+  border-color: #a38cf0;
+  background: #f6f3ff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(128,98,230,.12);
+}
+.platform-chip-active {
+  border-color: #8062e6;
+  background: #f0ecff;
+  box-shadow: 0 0 0 3px rgba(128,98,230,.18);
+}
+.platform-chip-icon { font-size: 22px; line-height: 1; }
+.platform-chip-label { font-size: 9px; font-weight: 700; color: #575369; letter-spacing: .3px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.platform-chip-active .platform-chip-label { color: #8062e6; }
+
+/* Dark theme overrides for platform picker */
+.dashboard-dark .platform-chip { background: #2a2638; border-color: #3d3852; }
+.dashboard-dark .platform-chip:hover { background: #342f4a; border-color: #a38cf0; }
+.dashboard-dark .platform-chip-active { background: #3a3260; border-color: #8062e6; }
+.dashboard-dark .platform-chip-label { color: #b8b2cc; }
+.dashboard-dark .platform-chip-active .platform-chip-label { color: #c4adff; }
+
+/* ── Social links editor (Profile modal) ──────────────────────────────────── */
+.social-links-editor { margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
+.social-links-empty { font-size: 11px; color: #a09ab8; margin: 0 0 4px; font-style: italic; }
+.social-link-row {
+  display: grid;
+  grid-template-columns: 28px 110px 1fr 28px;
+  align-items: center;
+  gap: 6px;
+  background: #faf9ff;
+  border: 1px solid #e9e6ef;
+  border-radius: 9px;
+  padding: 7px 8px;
+  transition: border-color .15s;
+}
+.social-link-row:focus-within { border-color: #a38cf0; box-shadow: 0 0 0 3px rgba(128,98,230,.1); }
+.social-link-icon { font-size: 18px; text-align: center; line-height: 1; }
+.social-platform-select {
+  height: 30px !important;
+  min-height: unset !important;
+  padding: 0 6px !important;
+  font-size: 11px !important;
+  margin-bottom: 0 !important;
+  border-radius: 6px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+.social-link-url {
+  height: 30px !important;
+  min-height: unset !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  margin-bottom: 0 !important;
+  border-radius: 6px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+.social-link-url:focus, .social-platform-select:focus { background: #fff !important; border-color: #a38cf0 !important; }
+.social-remove-btn { width: 26px !important; height: 26px !important; border-radius: 6px !important; color: #a09ab8 !important; }
+.social-remove-btn:hover { color: #e05c5c !important; background: #fff0f0 !important; }
+.social-add-btn { margin-top: 2px; width: fit-content; font-size: 11px !important; padding: 6px 12px !important; height: auto !important; }
+
+/* Dark theme overrides for social links editor */
+.dashboard-dark .social-link-row { background: #2a2638; border-color: #3d3852; }
+.dashboard-dark .social-platform-select, .dashboard-dark .social-link-url { color: #e0dcf0; }
+.dashboard-dark .social-platform-select:focus, .dashboard-dark .social-link-url:focus { background: #201d2e !important; }

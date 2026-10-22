@@ -1,4 +1,6 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '')
+// Empty string = use relative URLs, which go through the Vite dev proxy.
+// Set VITE_API_BASE_URL in client/.env for production pointing at a real backend.
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 
 export class ApiError extends Error {
   constructor(message, status = 0, payload = null) {
